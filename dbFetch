@@ -1,0 +1,35 @@
+import json
+import boto3
+from CUSTOM import db
+#==============================================================
+
+#==============================================================
+def lambda_handler(event, context):
+    
+    table_name='Accommodation'
+    campusName = event["currentIntent"]["slots"]["slotOne"].title()
+    print(campusName)
+    noOfRooms = event["currentIntent"]["slots"]["slotTwo"].title()
+    gender=event["currentIntent"]["slots"]["slotThree"].title()
+    condition="campus='"+campusName+"' and roomType='"+noOfRooms+"' and gender='"+gender+"' and availability='Available'"
+    print(condition)
+    resp=db.fetch(table_name,condition)
+    
+    availability=False
+    if resp['status'] == 'success':
+        for i in resp['rows']:
+            availability=True
+            
+        if  availability :
+            print('ROOM AVAILABLE')
+            res1= {"dialogAction":{"fulfillmentState":"Fulfilled","type":"Close","message":{"contentType":"PlainText","content": "Yes, We have " +noOfRooms+ " bedroom Apartment AVAILABLE in "+campusName+ "Campus" }}}
+            return res1
+        else:
+            print('ROOM NOT AVAILABLE')
+            res1= {"dialogAction":{"fulfillmentState":"Fulfilled","type":"Close","message":{"contentType":"PlainText","content": "Sorry, We dont have " +noOfRooms+ " bedroom Apartment AVAILABLE in "+campusName+ "Campus. We will let you know if we have any availability in near future" }}}
+            return res1
+    else:
+        res1= {"dialogAction":{"fulfillmentState":"Fulfilled","type":"Close","message":{"contentType":"PlainText","content": "Sorry, We dont have " +noOfRooms+ " bedroom Apartment AVAILABLE in "+campusName+ "Campus. We will let you know if we have any availability in near future" }}}
+        return res1
+
+
